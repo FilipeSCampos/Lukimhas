@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import './App.css'
 import GameStatsChart from "@/components/ui/GameStatsChart";
 
-const API_BASE_URL = 'http://localhost:5001/api/steam'
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api/steam";
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('')
