@@ -118,3 +118,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Adicione estas regras */
+:root {
+  --wave-z-index: 1;
+  --content-z-index: 10;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Garante que os elementos interativos fiquem acima das waves */
+.button,
+.input,
+.card,
+.dialog,
+.dropdown {
+  position: relative;
+  z-index: var(--content-z-index);
+}

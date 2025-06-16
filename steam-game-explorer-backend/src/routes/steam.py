@@ -162,10 +162,87 @@ def get_game_details(app_id):
             'recommendations': game_data.get('recommendations')
         }
         
-        return jsonify(game_details)
+        # Adicionar processamento dos requisitos do sistema
+        if 'pc_requirements' in game_details:
+            # Processar requisitos mínimos
+            min_reqs = game_details['pc_requirements'].get('minimum', '')
+            # Processar requisitos recomendados se disponíveis
+            rec_reqs = game_details['pc_requirements'].get('recommended', '')
+            
+            # Função para extrair informações específicas dos requisitos
+            def parse_requirements(req_text):
+                if not req_text:
+                    return {
+                        'processor': 'Não especificado',
+                        'memory': 'Não especificado',
+                        'graphics': 'Não especificado',
+                        'os': 'Não especificado',
+                        'storage': 'Não especificado'
+                    }
+                
+                try:
+                    # Remove tags HTML
+                    clean_text = req_text.replace('<br>', '\n').replace('<strong>', '').replace('</strong>', '')
+                    # Expressões regulares para extrair informações
+                    import re
+                    
+                    requirements = {
+                        'processor': 'Não especificado',
+                        'memory': 'Não especificado',
+                        'graphics': 'Não especificado',
+                        'os': 'Não especificado',
+                        'storage': 'Não especificado'
+                    }
+                    
+                    # CPU
+                    cpu_pattern = r'Processor:?(.*?)(?:[\n\r]|Memory|RAM|$)'
+                    cpu_match = re.search(cpu_pattern, clean_text, re.IGNORECASE | re.DOTALL)
+                    if cpu_match:
+                        requirements['processor'] = cpu_match.group(1).strip()
+
+                    # RAM
+                    ram_pattern = r'Memory:?(.*?)(?:[\n\r]|Graphics|$)'
+                    ram_match = re.search(ram_pattern, clean_text, re.IGNORECASE | re.DOTALL)
+                    if ram_match:
+                        requirements['memory'] = ram_match.group(1).strip()
+
+                    # GPU
+                    gpu_pattern = r'Graphics:?(.*?)(?:[\n\r]|DirectX|Storage|$)'
+                    gpu_match = re.search(gpu_pattern, clean_text, re.IGNORECASE | re.DOTALL)
+                    if gpu_match:
+                        requirements['graphics'] = gpu_match.group(1).strip()
+
+                    # Storage
+                    storage_pattern = r'Storage:?(.*?)(?:[\n\r]|Additional|$)'
+                    storage_match = re.search(storage_pattern, clean_text, re.IGNORECASE | re.DOTALL)
+                    if storage_match:
+                        requirements['storage'] = storage_match.group(1).strip()
+
+                    # OS
+                    os_pattern = r'OS:?(.*?)(?:[\n\r]|Processor|$)'
+                    os_match = re.search(os_pattern, clean_text, re.IGNORECASE | re.DOTALL)
+                    if os_match:
+                        requirements['os'] = os_match.group(1).strip()
+
+                    return requirements
+                except Exception as e:
+                    print(f"Erro ao processar requisitos: {e}")
+                    return {
+                        'processor': 'Não especificado',
+                        'memory': 'Não especificado',
+                        'graphics': 'Não especificado',
+                        'os': 'Não especificado',
+                        'storage': 'Não especificado'
+                    }
+            
+            game_details['pc_requirements'] = {
+                'minimum': parse_requirements(min_reqs),
+                'recommended': parse_requirements(rec_reqs)
+            }
         
-    except requests.RequestException as e:
-        return jsonify({'error': f'Failed to fetch data from Steam API: {str(e)}'}), 500
+        return jsonify(game_details)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @steam_bp.route('/games/<int:app_id>/reviews', methods=['GET'])
 def get_game_reviews(app_id):

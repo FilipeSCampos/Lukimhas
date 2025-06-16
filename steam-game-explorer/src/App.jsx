@@ -8,17 +8,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { motion, AnimatePresence } from 'framer-motion'
 import './App.css'
 import GameStatsChart from "@/components/ui/GameStatsChart";
+import { useNavigate } from 'react-router-dom'
+import WaveBackground from '@/components/ui/WaveBackground'
+import { useTheme } from '@/contexts/ThemeContext'
+import { themes } from '@/lib/theme'
+import GameSpecs from '@/components/ui/GameSpecs'  // Add this line
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api/steam";
 
 function App() {
+  const { darkMode, setDarkMode } = useTheme();
+  const theme = darkMode ? themes.dark : themes.light;
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [selectedGame, setSelectedGame] = useState(null)
   const [gameDetails, setGameDetails] = useState(null)
   const [gameReviews, setGameReviews] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [darkMode, setDarkMode] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (darkMode) {
@@ -76,6 +83,7 @@ function App() {
       // Buscar detalhes do jogo
       const detailsResponse = await fetch(`${API_BASE_URL}/games/${game.appid}/details`)
       const details = await detailsResponse.json()
+      console.log('Game Details:', details) // Adicione esta linha
       setGameDetails(details)
 
       // Buscar avaliações do jogo
@@ -98,11 +106,22 @@ function App() {
     return hours > 0 ? `${hours}h` : `${minutes}min`
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      {/* Header */}
-      <header className="border-b border-white/10 backdrop-blur-sm bg-black/20">
-        <div className="container mx-auto px-4 py-6">
+    <div className={`min-h-screen ${theme.background.gradient} transition-colors duration-700`}>
+      <WaveBackground isDarkMode={darkMode} />
+      
+      {/* Header atualizado */}
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${
+        darkMode
+          ? 'border-b border-purple-500/10 bg-gray-950/10 backdrop-blur-sm'
+          : 'border-b border-white/20 bg-white/10 backdrop-blur-[2px]'
+      }`}>
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <motion.div 
               className="flex items-center space-x-3"
@@ -110,25 +129,53 @@ function App() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Gamepad2 className="h-8 w-8 text-purple-400" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <Gamepad2 
+                className={`h-6 w-6 ${
+                  darkMode ? 'text-purple-400' : 'text-[#EEAECA]'
+                }`}
+              />
+              <h1 className={`text-2xl font-bold bg-gradient-to-r ${
+                darkMode
+                  ? 'from-purple-400 to-purple-600'
+                  : 'from-[#EEAECA] to-[#94BBE9]'
+              } bg-clip-text text-transparent`}>
                 Steam Game Explorer
               </h1>
             </motion.div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDarkMode(!darkMode)}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDarkMode(!darkMode)}
+                className={`transition-all duration-300 ${
+                  darkMode
+                    ? 'bg-gray-950/20 hover:bg-gray-900/30 text-purple-300 border-purple-500/20'
+                    : 'bg-white/20 hover:bg-white/30 text-gray-800 border-white/20'
+                }`}
+              >
+                {darkMode ? '☀️' : '🌙'}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className={`transition-all duration-300 ${
+                  darkMode
+                    ? 'bg-gray-950/20 hover:bg-gray-900/30 text-purple-300 border-purple-500/20'
+                    : 'bg-white/20 hover:bg-white/30 text-gray-800 border-white/20'
+                }`}
+              >
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      {/* Container principal com z-index maior que as waves */}
+      <div className="relative z-10 container mx-auto px-4 py-8">
         {/* Search Section */}
         <motion.div 
           className="max-w-2xl mx-auto mb-12"
@@ -137,10 +184,10 @@ function App() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Descubra Jogos Incríveis
             </h2>
-            <p className="text-lg text-gray-300">
+            <p className={`text-lg ${theme.text.secondary}`}>
               Explore avaliações, métricas e comentários da comunidade Steam
             </p>
           </div>
@@ -151,12 +198,12 @@ function App() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && searchGames()}
-              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-purple-400"
+              className={`${theme.input.background} ${theme.input.border} ${theme.input.text} ${theme.input.placeholder}`}
             />
             <Button 
               onClick={searchGames} 
               disabled={loading}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              className={theme.button.primary}
             >
               <Search className="h-4 w-4" />
             </Button>
@@ -171,7 +218,7 @@ function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h3 className="text-2xl font-bold mb-6 text-center">Resultados da Busca</h3>
+            <h3 className={`text-2xl font-bold mb-6 text-center ${theme.text.primary}`}>Resultados da Busca</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
               {searchResults.slice(0, 12).map((game, index) => (
                 <motion.div
@@ -181,7 +228,7 @@ function App() {
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <Card 
-                    className="bg-white/5 border-white/10 hover:bg-white/10 transition-all duration-300 cursor-pointer hover:scale-105 overflow-hidden"
+                    className={`${theme.card.background} ${theme.card.border} ${theme.card.hover} transition-all duration-300 cursor-pointer hover:scale-105 overflow-hidden`}
                     onClick={() => selectGame(game)}
                   >
                     {game.header_image && (
@@ -194,8 +241,8 @@ function App() {
                       </div>
                     )}
                     <CardContent className="p-4">
-                      <h4 className="font-semibold text-white truncate">{game.name}</h4>
-                      <p className="text-sm text-gray-400">App ID: {game.appid}</p>
+                      <h4 className={`font-semibold ${theme.text.primary} truncate`}>{game.name}</h4>
+                      <p className={`text-sm ${theme.text.muted}`}>App ID: {game.appid}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -260,11 +307,18 @@ function App() {
                           )}
                           
                           {gameDetails.publishers && (
-                            <div className="mt-4">
+                            <div className="mt-4 mb-6"> {/* Adicionado mb-6 para espaço antes do GameSpecs */}
                               <h4 className="font-semibold text-purple-300 mb-2">Editoras</h4>
                               <p className="text-gray-300">{gameDetails.publishers.join(', ')}</p>
                             </div>
                           )}
+                          
+                          {/* GameSpecs com container próprio e bordas para destacar */}
+                          <div className="mt-6 p-4 rounded-lg border border-purple-500/20 bg-purple-500/5">
+                            <h4 className="font-semibold text-purple-300 mb-4">Requisitos do Sistema</h4>
+                            <GameSpecs gameRequirements={gameDetails.pc_requirements} />
+                          </div>
+
                         </div>
                         
                         <div>

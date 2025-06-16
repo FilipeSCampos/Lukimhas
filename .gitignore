@@ -1,9 +1,9 @@
 # Ignore node_modules and Python venvs globally
-steam-game-explorer/node_modules/
 steam-game-explorer-backend/venv/
 steam-game-explorer-backend/__pycache__/
 steam-game-explorer-backend/.env
 *.log
+steam-game-explorer/node_modules/
 
 
 # Ignore IDE specific files
@@ -12,3 +12,4 @@ steam-game-explorer-backend/.env
 .DS_Store
 
 
+node_modules/
