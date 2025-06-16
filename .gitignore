@@ -11,4 +11,4 @@ steam-game-explorer-backend/.env
 # Ignore OS specific files
 .DS_Store
 
-steam-game-explorer/src/components/ui/
+
