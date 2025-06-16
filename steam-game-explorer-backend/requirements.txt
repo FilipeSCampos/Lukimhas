@@ -22,3 +22,4 @@ py-cpuinfo==9.0.0
 GPUtil==1.4.0
 pywin32==306; sys_platform == "win32"
 wmi==1.5.1; sys_platform == "win32"
+PyJWT == 2.8.0
