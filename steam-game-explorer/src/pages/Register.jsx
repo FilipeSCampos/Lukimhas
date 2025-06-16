@@ -1,21 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import WaveBackground from '@/components/ui/WaveBackground';
+import WaveBackground from "@/components/ui/WaveBackground";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from '@/contexts/ThemeContext';
 import { themes } from '@/lib/theme';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api/steam";
+
 export default function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
   const { darkMode } = useTheme();
   const theme = darkMode ? themes.dark : themes.light;
 
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    return () => {
+      document.documentElement.classList.remove('dark');
+    };
+  }, []);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
+    try {
+      const res = await fetch(`${API_BASE_URL.replace("/api/steam", "")}/api/register`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({ 
+          username: name,
+          email, 
+          password 
+        }),
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao cadastrar");
+      }
+      
+      setSuccess(true);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (err) {
+      setError(err.message || "Erro ao conectar com o servidor");
+    }
+  };
+
   return (
-    <div className={`relative min-h-screen ${theme.background.gradient} transition-colors duration-700`}>
+    <div className={`min-h-screen ${theme.background.gradient} transition-colors duration-700`}>
       <WaveBackground isDarkMode={darkMode} />
       
-      {/* Container principal com z-index maior que as waves */}
-      <div className="relative z-10 container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center min-h-screen">
           <div className="text-center mb-8 relative z-10">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
