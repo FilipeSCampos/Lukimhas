@@ -12,6 +12,8 @@ const GRADIENTS = [
   "#b993d6", // roxo claro
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api/steam";
+
 export default function GameStatsChart({ appId }) {
   const [achievements, setAchievements] = useState([]);
   const [reviewMetrics, setReviewMetrics] = useState(null);
@@ -22,7 +24,7 @@ export default function GameStatsChart({ appId }) {
     setLoading(true);
 
     // Fetch achievements
-    fetch(`http://localhost:5001/api/steam/games/${appId}/stats`)
+    fetch(`${API_BASE_URL}/games/${appId}/stats`)
       .then(res => res.json())
       .then(json => {
         setAchievements(
@@ -33,7 +35,7 @@ export default function GameStatsChart({ appId }) {
       });
 
     // Fetch review metrics
-    fetch(`http://localhost:5001/api/steam/games/${appId}/reviews?num_per_page=0`)
+    fetch(`${API_BASE_URL}/games/${appId}/reviews?num_per_page=0`)
       .then(res => res.json())
       .then(json => {
         setReviewMetrics(json.query_summary || null);
